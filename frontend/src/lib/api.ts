@@ -1,4 +1,15 @@
-const BASE_URL = 'http://localhost:5000/api';
+const getBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      // In production (Vercel), route to backend service via mapped prefix
+      return '/_/backend/api';
+    }
+  }
+  return 'http://localhost:5000/api';
+};
+
+const BASE_URL = getBaseUrl();
 
 const getHeaders = () => {
   const headers: HeadersInit = {
