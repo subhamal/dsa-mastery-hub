@@ -11,9 +11,8 @@ export default function Sidebar() {
   const { user } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'DSA Roadmap', href: '/roadmap', icon: Map },
     { name: 'Practice Problems', href: '/problems', icon: Code2 },
+    { name: 'DSA Roadmap', href: '/roadmap', icon: Map },
     { name: 'AI Hub Tools', href: '/ai-hub', icon: Bot },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy }
   ];

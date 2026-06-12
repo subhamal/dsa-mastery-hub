@@ -38,11 +38,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const res = await api.get('/auth/me');
         setUser(res.user);
       } else {
-        setUser(null);
+        // Auto-login seeded demo user
+        try {
+          const res = await api.post('/auth/login', { email: 'demo@masteryhub.com', password: 'password123' });
+          localStorage.setItem('dsa_token', res.token);
+          setUser(res.user);
+        } catch (authErr) {
+          console.error('Silent auto-login failed:', authErr);
+          setUser(null);
+        }
       }
     } catch (err) {
       console.error('Failed to restore session:', err);
-      logout();
+      localStorage.removeItem('dsa_token');
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -94,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('dsa_token');
     setUser(null);
-    router.push('/login');
+    router.push('/problems');
   };
 
   return (

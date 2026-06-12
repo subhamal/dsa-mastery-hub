@@ -12,8 +12,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [darkMode, setDarkMode] = useState(true);
 
-  const isAuthPage = pathname === '/login' || pathname === '/register';
-
   useEffect(() => {
     // Sync dark mode style class
     if (darkMode) {
@@ -22,12 +20,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
-
-  useEffect(() => {
-    if (!loading && !user && !isAuthPage) {
-      router.push('/login');
-    }
-  }, [user, loading, isAuthPage, router]);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -42,14 +34,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
-  }
-
-  if (!user && !isAuthPage) {
-    return null; // Prevents flashing content before redirect
-  }
-
-  if (isAuthPage) {
-    return <div className="min-h-screen bg-slate-950 text-white flex flex-col">{children}</div>;
   }
 
   return (
