@@ -1,0 +1,175 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String                 @id @default(uuid())
+  email        String                 @unique
+  passwordHash String
+  name         String
+  avatar       String                 @default("default-avatar.png")
+  xp           Int                    @default(0)
+  streak       Int                    @default(0)
+  lastActive   DateTime               @default(now())
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  progress     UserProgress[]
+  qProgress    UserQuestionProgress[]
+  xpTx         XPTransaction[]
+  badges       UserBadge[]
+  revision     RevisionItem[]
+  chatHistory  ChatHistory[]
+}
+
+model Phase {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  order       Int
+  slug        String    @unique
+  concepts    Concept[]
+}
+
+model Concept {
+  id                 String              @id @default(uuid())
+  phaseId            String
+  phase              Phase               @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  title              String
+  slug               String              @unique
+  order              Int
+  description        String
+  notes              String              // Markdown format
+  complexityAnalysis String              // Complexity analysis markdown/text
+  realWorldApps      String              // Bullet points or text
+  commonMistakes     String              // Bullet points or text
+  interviewTips      String              // Bullet points or text
+  questions          Question[]
+  interviewQuestions InterviewQuestion[]
+  userProgress       UserProgress[]
+}
+
+model Question {
+  id                    String                 @id @default(uuid())
+  conceptId             String
+  concept               Concept                @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  title                 String
+  slug                  String                 @unique
+  difficulty            String                 // EASY, MEDIUM, HARD
+  acceptanceRate        Float                  @default(75.0)
+  estimatedTime         Int                    @default(20) // in minutes
+  companyTags           String                 // JSON string array of companies: ["Google", "Meta"]
+  tags                  String                 // JSON string array of tags: ["Arrays", "Sliding Window"]
+  problemStatement      String
+  hints                 String                 // JSON string array of hints
+  bruteForceSolution    String
+  betterSolution        String
+  optimalSolution       String
+  bruteForceExplanation String
+  betterExplanation     String
+  optimalExplanation    String
+  codeTemplates         String                 // JSON string of code templates by language
+  complexityAnalysis    String                 // JSON complexity analysis: { bruteForce: { time: "", space: "" }, optimal: {} }
+  userProgress          UserQuestionProgress[]
+  revisionItems         RevisionItem[]
+}
+
+model InterviewQuestion {
+  id           String   @id @default(uuid())
+  conceptId    String
+  concept      Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  title        String
+  company      String   // Google, Microsoft, etc.
+  frequency    Int      @default(3) // 1-5 rating of frequency
+  questionText String
+  answerText   String
+}
+
+model UserProgress {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conceptId   String
+  concept     Concept   @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  status      String    @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED
+  notes       String?
+  bookmarked  Boolean   @default(false)
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, conceptId])
+}
+
+model UserQuestionProgress {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  status      String    @default("ATTEMPTED") // ATTEMPTED, COMPLETED
+  notes       String?
+  bookmarked  Boolean   @default(false)
+  userCode    String?
+  language    String?
+  solvedAt    DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, questionId])
+}
+
+model XPTransaction {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points    Int
+  reason    String
+  createdAt DateTime @default(now())
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  icon        String      // Lucide icon name or emoji
+  xpRequired  Int
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}
+
+model RevisionItem {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  dueAt      DateTime
+  interval   Int      @default(1) // in days
+  easeFactor Float    @default(2.5)
+  repetitions Int     @default(0)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, questionId])
+}
+
+model ChatHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   // user or assistant
+  message   String
+  createdAt DateTime @default(now())
+}
