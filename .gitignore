@@ -87,3 +87,11 @@ backend/dist/
 # OS files
 .DS_Store
 Thumbs.db
+
+# SQLite databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+
